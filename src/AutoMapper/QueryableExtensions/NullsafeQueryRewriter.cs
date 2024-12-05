@@ -35,15 +35,20 @@ namespace AutoMapper.QueryableExtensions;
 /// </remarks>
 internal class NullsafeQueryRewriter : ExpressionVisitor
 {
-    static readonly LockingConcurrentDictionary<Type, Expression> Cache = new(Fallback);
+    private static readonly LockingConcurrentDictionary<Type, Expression> Cache = new(Fallback);
 
-    public static Expression NullCheck(Expression expression) => new NullsafeQueryRewriter().Visit(expression);
+    public static Expression NullCheck(Expression expression)
+    {
+        return new NullsafeQueryRewriter().Visit(expression);
+    }
 
     /// <inheritdoc />
     protected override Expression VisitMember(MemberExpression node)
     {
         if (node == null)
+        {
             throw new ArgumentNullException(nameof(node));
+        }
 
         var target = Visit(node.Expression);
 
@@ -60,7 +65,9 @@ internal class NullsafeQueryRewriter : ExpressionVisitor
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         if (node == null)
+        {
             throw new ArgumentNullException(nameof(node));
+        }
 
         var target = Visit(node.Object);
 
@@ -88,7 +95,7 @@ internal class NullsafeQueryRewriter : ExpressionVisitor
         return node.Update(target, arguments);
     }
 
-    static Expression BeSafe(Expression target, Expression expression, Func<Expression, Expression> update)
+    private static Expression BeSafe(Expression target, Expression expression, Func<Expression, Expression> update)
     {
         var fallback = Cache.GetOrAdd(target.Type);
 
@@ -103,27 +110,28 @@ internal class NullsafeQueryRewriter : ExpressionVisitor
 
         // expression can be default or null, which is basically the same...
         var expressionFallback = !IsNullableOrReferenceType(expression.Type)
-            ? (Expression)Default(expression.Type) : Constant(null, expression.Type);
+            ? (Expression)Default(expression.Type)
+            : Constant(null, expression.Type);
 
         return Condition(Equal(target, targetFallback), expressionFallback, expression);
     }
 
-    static bool IsSafe(Expression expression)
+    private static bool IsSafe(Expression expression)
     {
         // in method call results and constant values we trust to avoid too much conditions...
         return expression == null
-            || expression.NodeType == ExpressionType.Call
-            || expression.NodeType == ExpressionType.Constant
-            || !IsNullableOrReferenceType(expression.Type);
+               || expression.NodeType == ExpressionType.Call
+               || expression.NodeType == ExpressionType.Constant
+               || !IsNullableOrReferenceType(expression.Type);
     }
 
-    static Expression Fallback(Type type)
+    private static Expression Fallback(Type type)
     {
         // default values for generic collections
         if (type.IsConstructedGenericType && type.GenericTypeArguments.Length == 1)
         {
             return CollectionFallback(typeof(List<>), type)
-                ?? CollectionFallback(typeof(HashSet<>), type);
+                   ?? CollectionFallback(typeof(HashSet<>), type);
         }
 
         // default value for arrays
@@ -135,7 +143,7 @@ internal class NullsafeQueryRewriter : ExpressionVisitor
         return null;
     }
 
-    static Expression CollectionFallback(Type definition, Type type)
+    private static Expression CollectionFallback(Type definition, Type type)
     {
         var collection = definition.MakeGenericType(type.GetTypeInfo().GenericTypeArguments);
 
@@ -148,12 +156,12 @@ internal class NullsafeQueryRewriter : ExpressionVisitor
         return null;
     }
 
-    static bool IsExtensionMethod(MethodInfo element)
+    private static bool IsExtensionMethod(MethodInfo element)
     {
         return element.IsDefined(typeof(ExtensionAttribute), false);
     }
 
-    static bool IsNullableOrReferenceType(Type type)
+    private static bool IsNullableOrReferenceType(Type type)
     {
         return !type.GetTypeInfo().IsValueType || Nullable.GetUnderlyingType(type) != null;
     }

@@ -1,8 +1,14 @@
 namespace AutoMapper.Internal.Mappers;
+
 public sealed class EnumToEnumMapper : IObjectMapper
 {
-    private static readonly MethodInfo TryParseMethod = typeof(Enum).StaticGenericMethod("TryParse", parametersCount: 3);
-    public bool IsMatch(TypePair context) => context.IsEnumToEnum();
+    private static readonly MethodInfo TryParseMethod = typeof(Enum).StaticGenericMethod("TryParse", 3);
+
+    public bool IsMatch(TypePair context)
+    {
+        return context.IsEnumToEnum();
+    }
+
     public Expression MapExpression(IGlobalConfiguration configuration, ProfileMap profileMap,
         MemberMap memberMap, Expression sourceExpression, Expression destExpression)
     {

@@ -20,6 +20,7 @@
 ```
 
 ### Version: x.y.z
+
 <!-- 
     Include the major/minor version (4.2.1, 5.2.0, 6.0.2 etc) 
     If you're using ProjectTo, also specify the EF Core or EF6 version.

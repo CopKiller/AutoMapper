@@ -9,7 +9,8 @@ var config = new MapperConfiguration(cfg => {
 });
 ```
 
-The `MapperConfiguration` instance can be stored statically, in a static field or in a dependency injection container. Once created it cannot be changed/modified.
+The `MapperConfiguration` instance can be stored statically, in a static field or in a dependency injection container.
+Once created it cannot be changed/modified.
 
 ```c#
 var configuration = new MapperConfiguration(cfg => {
@@ -17,12 +18,14 @@ var configuration = new MapperConfiguration(cfg => {
     cfg.AddProfile<FooProfile>();
 });
 ```
+
 Starting with 9.0, the static API is no longer available.
 
 ## Profile Instances
 
 A good way to organize your mapping configurations is with profiles.
 Create classes that inherit from `Profile` and put the configuration in the constructor:
+
 ```c#
 // This is the approach starting with version 5
 public class OrganizationProfile : Profile
@@ -47,7 +50,8 @@ public class OrganizationProfile : Profile
 In earlier versions the `Configure` method was used instead of a constructor.
 As of version 5, `Configure()` is obsolete. It will be removed in 6.0.
 
-Configuration inside a profile only applies to maps inside the profile. Configuration applied to the root configuration applies to *all* maps created.
+Configuration inside a profile only applies to maps inside the profile. Configuration applied to the root configuration
+applies to *all* maps created.
 
 ### Assembly Scanning for auto configuration
 
@@ -114,6 +118,7 @@ public class OrganizationProfile : Profile
   }
 }
 ```
+
 If you don't need a naming convention, you can use the `ExactMatchNamingConvention`.
 
 ## Replacing characters
@@ -148,7 +153,8 @@ var configuration = new MapperConfiguration(c =>
 
 ## Recognizing pre/postfixes
 
-Sometimes your source/destination properties will have common pre/postfixes that cause you to have to do a bunch of custom member mappings because the names don't match up. To address this, you can recognize pre/postfixes:
+Sometimes your source/destination properties will have common pre/postfixes that cause you to have to do a bunch of
+custom member mappings because the names don't match up. To address this, you can recognize pre/postfixes:
 
 ```c#
 public class Source {
@@ -177,7 +183,8 @@ var configuration = new MapperConfiguration(cfg => {
 
 ## Global property/field filtering
 
-By default, AutoMapper tries to map every public property/field. You can filter out properties/fields with the property/field filters:
+By default, AutoMapper tries to map every public property/field. You can filter out properties/fields with the
+property/field filters:
 
 ```c#
 var configuration = new MapperConfiguration(cfg =>
@@ -193,7 +200,9 @@ var configuration = new MapperConfiguration(cfg =>
 
 ## Configuring visibility
 
-By default, AutoMapper only recognizes public members. It can map to private setters, but will skip internal/private methods and properties if the entire property is private/internal. To instruct AutoMapper to recognize members with other visibilities, override the default filters ShouldMapField and/or ShouldMapProperty :
+By default, AutoMapper only recognizes public members. It can map to private setters, but will skip internal/private
+methods and properties if the entire property is private/internal. To instruct AutoMapper to recognize members with
+other visibilities, override the default filters ShouldMapField and/or ShouldMapProperty :
 
 ```c#
 var configuration = new MapperConfiguration(cfg =>
@@ -208,20 +217,26 @@ Map configurations will now recognize internal/private members.
 
 ## Configuration compilation
 
-Because expression compilation can be a bit resource intensive, AutoMapper lazily compiles the type map plans on first map. However, this behavior is not always desirable, so you can tell AutoMapper to compile its mappings directly:
+Because expression compilation can be a bit resource intensive, AutoMapper lazily compiles the type map plans on first
+map. However, this behavior is not always desirable, so you can tell AutoMapper to compile its mappings directly:
 
 ```c#
 var configuration = new MapperConfiguration(cfg => {});
 configuration.CompileMappings();
 ```
 
-For a few hundred mappings, this may take a couple of seconds. If it's a lot more than that, you probably have some really big execution plans.
+For a few hundred mappings, this may take a couple of seconds. If it's a lot more than that, you probably have some
+really big execution plans.
 
 ### Long compilation times
 
-Compilation times increase with the size of the execution plan and that depends on the number of properties and their complexity. Ideally, you would fix your model so you have many small DTOs, each for a particular use case. But you can also decrease the size of the execution plan without changing your classes.
+Compilation times increase with the size of the execution plan and that depends on the number of properties and their
+complexity. Ideally, you would fix your model so you have many small DTOs, each for a particular use case. But you can
+also decrease the size of the execution plan without changing your classes.
 
 You can set `MapAtRuntime` per member or `MaxExecutionPlanDepth` globally (the default is one, set it to zero).
 
-These will reduce the size of the execution plan by replacing the execution plan for a child object with a method call. The compilation will be faster, but the mapping itself might be slower. Search the repo for more details and use a profiler to better understand the effect.
+These will reduce the size of the execution plan by replacing the execution plan for a child object with a method call.
+The compilation will be faster, but the mapping itself might be slower. Search the repo for more details and use a
+profiler to better understand the effect.
 Avoiding `PreserveReferences` and `MaxDepth` also helps.

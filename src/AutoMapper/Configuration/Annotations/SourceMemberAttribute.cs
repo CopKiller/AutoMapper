@@ -18,6 +18,7 @@ public sealed class SourceMemberAttribute(string name) : Attribute, IMemberConfi
         {
             return;
         }
+
         memberConfigurationExpression.MapFrom(Name);
     }
 }

@@ -131,7 +131,7 @@ public interface IProfileExpression
     Func<FieldInfo, bool> ShouldMapField { get; set; }
     Func<MethodInfo, bool> ShouldMapMethod { get; set; }
     Func<ConstructorInfo, bool> ShouldUseConstructor { get; set; }
-    
+
     string ProfileName { get; }
 
     /// <summary>
@@ -145,6 +145,7 @@ public interface IProfileExpression
     /// </summary>
     List<ValueTransformerConfiguration> ValueTransformers { get; }
 }
+
 /// <summary>
 /// Member list to check for configuration validation
 /// </summary>

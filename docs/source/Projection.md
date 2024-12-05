@@ -1,6 +1,10 @@
 # Projection
 
-Projection transforms a source to a destination beyond flattening the object model.  Without extra configuration, AutoMapper requires a flattened destination to match the source type's naming structure.  When you want to project source values into a destination that does not exactly match the source structure, you must specify custom member mapping definitions.  For example, we might want to turn this source structure:
+Projection transforms a source to a destination beyond flattening the object model. Without extra configuration,
+AutoMapper requires a flattened destination to match the source type's naming structure. When you want to project source
+values into a destination that does not exactly match the source structure, you must specify custom member mapping
+definitions. For example, we might want to turn this source structure:
+
 ```c#
 public class CalendarEvent
 {
@@ -21,7 +25,8 @@ public class CalendarEventForm
 }
 ```
 
-Because the names of the destination properties do not exactly match the source property (`CalendarEvent.Date` would need to be `CalendarEventForm.EventDate`), we need to specify custom member mappings in our type map configuration:
+Because the names of the destination properties do not exactly match the source property (`CalendarEvent.Date` would
+need to be `CalendarEventForm.EventDate`), we need to specify custom member mappings in our type map configuration:
 
 ```c#
 // Model
@@ -47,4 +52,7 @@ form.EventMinute.ShouldEqual(30);
 form.Title.ShouldEqual("Company Holiday Party");
 ```
 
-Each custom member configuration uses an action delegate to configure each individual member.  In the above example, we used the `MapFrom` option to perform custom source-to-destination member mappings.  The `MapFrom` method takes a lambda expression as a parameter, which is then evaluated later during mapping.  The `MapFrom` expression can be any `Func<TSource, object>` lambda expression.
+Each custom member configuration uses an action delegate to configure each individual member. In the above example, we
+used the `MapFrom` option to perform custom source-to-destination member mappings. The `MapFrom` method takes a lambda
+expression as a parameter, which is then evaluated later during mapping. The `MapFrom` expression can be any
+`Func<TSource, object>` lambda expression.

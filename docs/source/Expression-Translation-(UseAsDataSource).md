@@ -1,6 +1,7 @@
 # Expression Translation (UseAsDataSource)
 
-Automapper supports translating Expressions from one object to another in a separate [package](https://www.nuget.org/packages/AutoMapper.Extensions.ExpressionMapping/).
+Automapper supports translating Expressions from one object to another in a
+separate [package](https://www.nuget.org/packages/AutoMapper.Extensions.ExpressionMapping/).
 This is done by substituting the properties from the source class to what they map to in the destination class.
 
 Given the example classes:
@@ -40,6 +41,7 @@ var configuration = new MapperConfiguration(cfg =>
     .ForMember(i => i.Name, conf => conf.MapFrom(dto => dto.Item));
 });
 ```
+
 When mapping from DTO Expression
 
 ```c#
@@ -62,7 +64,9 @@ Resulting in `ols => ols.Where(ol => ol.Quantity > 5).OrderBy(ol => ol.Quantity)
 
 ### Mapping Flattened Properties to Navigation Properties
 
-AutoMapper also supports mapping flattened (TModel or DTO) properties in expressions to their corresponding (TData) navigation properties (when the navigation property has been removed from the view model or DTO) e.g. CourseModel.DepartmentName from the model expression becomes Course.Department in the data expression.
+AutoMapper also supports mapping flattened (TModel or DTO) properties in expressions to their corresponding (TData)
+navigation properties (when the navigation property has been removed from the view model or DTO) e.g.
+CourseModel.DepartmentName from the model expression becomes Course.Department in the data expression.
 
 Take the following set of classes:
 
@@ -96,11 +100,13 @@ Expression<Func<IQueryable<CourseModel>, IIncludableQueryable<CourseModel, objec
 Expression<Func<IQueryable<Course>, IIncludableQueryable<Course, object>>> expMapped = mapper.MapExpressionAsInclude<Expression<Func<IQueryable<Course>, IIncludableQueryable<Course, object>>>>(exp);
 ```
 
-The resulting mapped expression (expMapped.ToString()) is then ``` i => i.Include(s => s.Department);  ``` . This feature allows navigation properties for the query to be defined based on the view model alone.
+The resulting mapped expression (expMapped.ToString()) is then ``` i => i.Include(s => s.Department);  ``` . This
+feature allows navigation properties for the query to be defined based on the view model alone.
 
 ### Supported Mapping options
 
-Much like how Queryable Extensions can only support certain things that the LINQ providers support, expression translation follows the same rules as what it can and can't support.
+Much like how Queryable Extensions can only support certain things that the LINQ providers support, expression
+translation follows the same rules as what it can and can't support.
 
 ## UseAsDataSource
 
@@ -119,7 +125,9 @@ Does the equivalent of
 
 ### When ProjectTo() is not called
 
-Expression Translation works for all kinds of functions, including `Select` calls.  If `Select` is used after `UseAsDataSource()` and changes the return type, then `ProjectTo<>()` won't be called and `mapper.Map` will be used instead.
+Expression Translation works for all kinds of functions, including `Select` calls. If `Select` is used after
+`UseAsDataSource()` and changes the return type, then `ProjectTo<>()` won't be called and `mapper.Map` will be used
+instead.
 
 Example:
 
@@ -131,8 +139,10 @@ Does the equivalent of
 
 ### Register a callback, for when an UseAsDataSource() query is enumerated
 
-Sometimes, you may want to edit the collection, that is returned from a mapped query before forwarding it to the next application layer.
-With `.ProjectTo<TDto>` this is quite simple, as there is no sense in directly returning the resulting `IQueryable<TDto>` because you cannot edit it anymore anyways. So you will most likely do this:
+Sometimes, you may want to edit the collection, that is returned from a mapped query before forwarding it to the next
+application layer.
+With `.ProjectTo<TDto>` this is quite simple, as there is no sense in directly returning the resulting
+`IQueryable<TDto>` because you cannot edit it anymore anyways. So you will most likely do this:
 
 ```c#
 var configuration = new MapperConfiguration(cfg =>
@@ -154,7 +164,8 @@ public List<OrderLineDTO> GetLinesForOrder(int orderId)
 }
 ```
 
-However, if you did this with the `.UseAsDataSource()` approach, you would lose all of its power - namely its ability to modify the internal expression until it is enumerated.
+However, if you did this with the `.UseAsDataSource()` approach, you would lose all of its power - namely its ability to
+modify the internal expression until it is enumerated.
 To solve that problem, we introduced the `.OnEnumerated` callback.
 Using it, you can do the following:
 
@@ -182,4 +193,5 @@ public IQueryable<OrderLineDTO> GetLinesForOrder(int orderId)
 ```
 
 this `OnEnumerated(IEnumerable)`callback is executed, when the `IQueryable<OrderLineDTO>` itself is enumerated.
-So this also works with the OData samples mentioned above: The OData $filter and $orderby expressions are still converted into SQL, and the `OnEnumerated()`callback is provided with the filtered, ordered resultset from the database.
+So this also works with the OData samples mentioned above: The OData $filter and $orderby expressions are still
+converted into SQL, and the `OnEnumerated()`callback is provided with the filtered, ordered resultset from the database.

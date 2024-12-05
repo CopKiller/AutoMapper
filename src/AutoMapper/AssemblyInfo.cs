@@ -7,4 +7,6 @@ using System.Runtime.InteropServices;
 
 namespace System.Runtime.CompilerServices;
 
-static class IsExternalInit { }
+internal static class IsExternalInit
+{
+}

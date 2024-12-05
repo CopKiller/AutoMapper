@@ -5,7 +5,8 @@ Mapping inheritance serves two functions:
 - Inheriting mapping configuration from a base class or interface configuration
 - Runtime polymorphic mapping
 
-Inheriting base class configuration is opt-in, and you can either explicitly specify the mapping to inherit from the base type configuration with `Include` or in the derived type configuration with `IncludeBase`:
+Inheriting base class configuration is opt-in, and you can either explicitly specify the mapping to inherit from the
+base type configuration with `Include` or in the derived type configuration with `IncludeBase`:
 
 ```c#
 CreateMap<BaseEntity, BaseDto>()
@@ -29,7 +30,8 @@ In each case above, the derived mapping inherits the custom mapping configuratio
 
 `Include`/`IncludeBase` applies recursively, so you only need to include the closest level in the hierarchy.
 
-If for some base class you have many directly derived classes, as a convenience, you can include all derived maps from the base type map configuration:
+If for some base class you have many directly derived classes, as a convenience, you can include all derived maps from
+the base type map configuration:
 
 ```c#
 CreateMap<BaseEntity, BaseDto>()
@@ -37,7 +39,9 @@ CreateMap<BaseEntity, BaseDto>()
 
 CreateMap<DerivedEntity, DerivedDto>();
 ```
-Note that this will search all your mappings for derived types and it will be slower than explicitly specifying the derived maps.
+
+Note that this will search all your mappings for derived types and it will be slower than explicitly specifying the
+derived maps.
 
 ### Runtime polymorphism
 
@@ -66,7 +70,8 @@ var mapped = mapper.Map(order, order.GetType(), typeof(OrderDto));
 Assert.IsType<OnlineOrderDto>(mapped);
 ```
 
-You will notice that because the mapped object is a OnlineOrder, AutoMapper has seen you have a more specific mapping for OnlineOrder than OrderDto, and automatically chosen that.
+You will notice that because the mapped object is a OnlineOrder, AutoMapper has seen you have a more specific mapping
+for OnlineOrder than OrderDto, and automatically chosen that.
 
 ## Specifying inheritance in derived classes
 
@@ -96,12 +101,13 @@ For simple cases, you can use `As` to redirect a base map to an existing derived
 
 ## Inheritance Mapping Priorities
 
-This introduces additional complexity because there are multiple ways a property can be mapped. The priority of these sources are as follows
+This introduces additional complexity because there are multiple ways a property can be mapped. The priority of these
+sources are as follows
 
- - Explicit Mapping (using .MapFrom())
- - Inherited Explicit Mapping
- - Ignore Property Mapping
- - Convention Mapping (Properties that are matched via convention)
+- Explicit Mapping (using .MapFrom())
+- Inherited Explicit Mapping
+- Ignore Property Mapping
+- Convention Mapping (Properties that are matched via convention)
 
 To demonstrate this, lets modify our classes shown above
 
@@ -136,9 +142,11 @@ var mapped = mapper.Map(order, order.GetType(), typeof(OrderDto));
 Assert.IsNull(mapped.Referrer);
 ```
 
-Notice that in our mapping configuration, we have ignored `Referrer` (because it doesn't exist in the order base class) and that has a higher priority than convention mapping, so the property doesn't get mapped.
+Notice that in our mapping configuration, we have ignored `Referrer` (because it doesn't exist in the order base class)
+and that has a higher priority than convention mapping, so the property doesn't get mapped.
 
-If you do want the `Referrer` property to be mapped in the mapping from `OnlineOrder` to `OrderDto` you should include an explicit mapping in the mapping like this:
+If you do want the `Referrer` property to be mapped in the mapping from `OnlineOrder` to `OrderDto` you should include
+an explicit mapping in the mapping like this:
 
 ```
     cfg.CreateMap<OnlineOrder, OrderDto>()

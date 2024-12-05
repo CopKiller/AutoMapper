@@ -1,6 +1,7 @@
 # Before and After Map Action
 
-Occasionally, you might need to perform custom logic before or after a map occurs. These should be a rarity, as it's more obvious to do this work outside of AutoMapper. You can create global before/after map actions:
+Occasionally, you might need to perform custom logic before or after a map occurs. These should be a rarity, as it's
+more obvious to do this work outside of AutoMapper. You can create global before/after map actions:
 
 ```c#
 var configuration = new MapperConfiguration(cfg => {
@@ -23,7 +24,9 @@ mapper.Map<Source, Dest>(src, opt => {
 The latter configuration is helpful when you need contextual information fed into before/after map actions.
 
 ## Using `IMappingAction`
-You can encapsulate Before and After Map Actions into small reusable classes. Those classes need to implement the `IMappingAction<in TSource, in TDestination>` interface.
+
+You can encapsulate Before and After Map Actions into small reusable classes. Those classes need to implement the
+`IMappingAction<in TSource, in TDestination>` interface.
 
 Using the previous example, here is an encapsulation of naming some objects "John":
 
@@ -43,9 +46,11 @@ var configuration = new MapperConfiguration(cfg => {
 ```
 
 ### Dependency Injection
+
 You can't inject dependencies into `Profile` classes, but you can do it in `IMappingAction` implementations.
 
-The following example shows how to connect an `IMappingAction` accessing the current `HttpContext` to a `Profile` after map action, leveraging dependency injection:
+The following example shows how to connect an `IMappingAction` accessing the current `HttpContext` to a `Profile` after
+map action, leveraging dependency injection:
 
 ``` csharp
 public class SetTraceIdentifierAction : IMappingAction<SomeModel, SomeOtherModel>

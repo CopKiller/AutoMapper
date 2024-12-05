@@ -17,7 +17,8 @@ public sealed class ValueResolverAttribute(Type type) : Attribute, IMemberConfig
 
     public void ApplyConfiguration(IMemberConfigurationExpression memberConfigurationExpression)
     {
-        var sourceMemberAttribute = memberConfigurationExpression.DestinationMember.GetCustomAttribute<SourceMemberAttribute>();
+        var sourceMemberAttribute =
+            memberConfigurationExpression.DestinationMember.GetCustomAttribute<SourceMemberAttribute>();
 
         if (sourceMemberAttribute != null)
         {

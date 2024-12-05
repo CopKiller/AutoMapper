@@ -1,6 +1,8 @@
 using AutoMapper.Configuration.Conventions;
 using System.Collections.Concurrent;
+
 namespace AutoMapper;
+
 [DebuggerDisplay("{Name}")]
 [EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class ProfileMap
@@ -10,14 +12,18 @@ public sealed class ProfileMap
     private Dictionary<TypePair, TypeMapConfiguration> _openTypeMapConfigs;
     private Dictionary<Type, TypeDetails> _typeDetails;
     private LazyValue<ConcurrentDictionary<Type, TypeDetails>> _runtimeTypeDetails;
+
     public ProfileMap(IProfileConfiguration profile, IGlobalConfigurationExpression configuration = null)
     {
         var globalProfile = (IProfileConfiguration)configuration;
         Name = profile.ProfileName;
         AllowNullCollections = profile.AllowNullCollections ?? configuration?.AllowNullCollections ?? false;
-        AllowNullDestinationValues = profile.AllowNullDestinationValues ?? configuration?.AllowNullDestinationValues ?? true;
-        EnableNullPropagationForQueryMapping = profile.EnableNullPropagationForQueryMapping ?? configuration?.EnableNullPropagationForQueryMapping ?? false;
-        ConstructorMappingEnabled = profile.ConstructorMappingEnabled ?? globalProfile?.ConstructorMappingEnabled ?? true;
+        AllowNullDestinationValues =
+            profile.AllowNullDestinationValues ?? configuration?.AllowNullDestinationValues ?? true;
+        EnableNullPropagationForQueryMapping = profile.EnableNullPropagationForQueryMapping ??
+                                               configuration?.EnableNullPropagationForQueryMapping ?? false;
+        ConstructorMappingEnabled =
+            profile.ConstructorMappingEnabled ?? globalProfile?.ConstructorMappingEnabled ?? true;
         MethodMappingEnabled = profile.MethodMappingEnabled ?? globalProfile?.MethodMappingEnabled ?? true;
         FieldMappingEnabled = profile.FieldMappingEnabled ?? globalProfile?.FieldMappingEnabled ?? true;
         ShouldMapField = profile.ShouldMapField ?? configuration?.ShouldMapField ?? (p => p.IsPublic);
@@ -27,7 +33,7 @@ public sealed class ProfileMap
         ValueTransformers = profile.ValueTransformers.Concat(configuration?.ValueTransformers).ToArray();
         var profileInternal = (IProfileExpressionInternal)profile;
         MemberConfiguration = profileInternal.MemberConfiguration;
-        if(configuration == null)
+        if (configuration == null)
         {
             MemberConfiguration.SourceNamingConvention ??= PascalCaseNamingConvention.Instance;
             MemberConfiguration.DestinationNamingConvention ??= PascalCaseNamingConvention.Instance;
@@ -36,6 +42,7 @@ public sealed class ProfileMap
         {
             MemberConfiguration.Merge(configuration.Internal().MemberConfiguration);
         }
+
         var globalIgnores = profile.GlobalIgnores.Concat(globalProfile?.GlobalIgnores);
         GlobalIgnores = globalIgnores == Array.Empty<string>() ? EmptyHashSet : [..globalIgnores];
         SourceExtensionMethods = profile.SourceExtensionMethods.Concat(globalProfile?.SourceExtensionMethods).ToArray();
@@ -46,9 +53,11 @@ public sealed class ProfileMap
         Postfixes.TryAdd(profileInternal.Postfixes.Concat(configuration?.Postfixes));
         TypeMapConfigs();
         OpenTypeMapConfigs();
-        _typeDetails = new(2 * _typeMapConfigs.Length);
-       _runtimeTypeDetails = new(()=>new(Environment.ProcessorCount, 2 * _openTypeMapConfigs.Count));
+        _typeDetails = new Dictionary<Type, TypeDetails>(2 * _typeMapConfigs.Length);
+        _runtimeTypeDetails = new LazyValue<ConcurrentDictionary<Type, TypeDetails>>(() =>
+            new ConcurrentDictionary<Type, TypeDetails>(Environment.ProcessorCount, 2 * _openTypeMapConfigs.Count));
         return;
+
         void TypeMapConfigs()
         {
             _typeMapConfigs = new TypeMapConfiguration[profile.TypeMapConfigs.Count];
@@ -62,11 +71,13 @@ public sealed class ProfileMap
                     reverseMapsCount++;
                 }
             }
+
             TypeMapsCount = index + reverseMapsCount;
         }
+
         void OpenTypeMapConfigs()
         {
-            _openTypeMapConfigs = new(profile.OpenTypeMapConfigs.Count);
+            _openTypeMapConfigs = new Dictionary<TypePair, TypeMapConfiguration>(profile.OpenTypeMapConfigs.Count);
             foreach (var openTypeMapConfig in profile.OpenTypeMapConfigs)
             {
                 _openTypeMapConfigs.Add(openTypeMapConfig.Types, openTypeMapConfig);
@@ -78,13 +89,16 @@ public sealed class ProfileMap
             }
         }
     }
+
     public int OpenTypeMapsCount => _openTypeMapConfigs.Count;
     public int TypeMapsCount { get; private set; }
+
     internal void Clear()
     {
         _typeDetails = null;
         _typeMapConfigs = null;
     }
+
     public bool AllowNullCollections { get; }
     public bool AllowNullDestinationValues { get; }
     public bool ConstructorMappingEnabled { get; }
@@ -104,20 +118,24 @@ public sealed class ProfileMap
     public List<string> Prefixes { get; } = [];
     public List<string> Postfixes { get; } = [];
     public IReadOnlyCollection<ValueTransformerConfiguration> ValueTransformers { get; }
+
     public TypeDetails CreateTypeDetails(Type type)
     {
         if (_typeDetails == null)
         {
-            return _runtimeTypeDetails.Value.GetOrAdd(type, (type, profile) => new(type, profile), this);
+            return _runtimeTypeDetails.Value.GetOrAdd(type, (type, profile) => new TypeDetails(type, profile), this);
         }
+
         if (_typeDetails.TryGetValue(type, out var typeDetails))
         {
             return typeDetails;
         }
-        typeDetails = new(type, this);
+
+        typeDetails = new TypeDetails(type, this);
         _typeDetails.Add(type, typeDetails);
         return typeDetails;
     }
+
     public void Register(IGlobalConfiguration configuration)
     {
         foreach (var config in _typeMapConfigs)
@@ -126,6 +144,7 @@ public sealed class ProfileMap
             {
                 continue;
             }
+
             BuildTypeMap(configuration, config);
             var reverseMap = config.ReverseTypeMap;
             if (reverseMap != null && reverseMap.DestinationTypeOverride == null)
@@ -134,6 +153,7 @@ public sealed class ProfileMap
             }
         }
     }
+
     private void BuildTypeMap(IGlobalConfiguration configuration, TypeMapConfiguration config)
     {
         var sourceMembers = configuration.SourceMembers;
@@ -141,6 +161,7 @@ public sealed class ProfileMap
         config.Configure(typeMap, sourceMembers);
         configuration.RegisterTypeMap(typeMap);
     }
+
     public void Configure(IGlobalConfiguration configuration)
     {
         foreach (var typeMapConfiguration in _typeMapConfigs)
@@ -150,12 +171,14 @@ public sealed class ProfileMap
                 configuration.RegisterAsMap(typeMapConfiguration);
                 continue;
             }
+
             Configure(typeMapConfiguration, configuration);
             var reverseMap = typeMapConfiguration.ReverseTypeMap;
             if (reverseMap == null)
             {
                 continue;
             }
+
             if (reverseMap.DestinationTypeOverride == null)
             {
                 Configure(reverseMap, configuration);
@@ -166,6 +189,7 @@ public sealed class ProfileMap
             }
         }
     }
+
     private void Configure(TypeMapConfiguration typeMapConfiguration, IGlobalConfiguration configuration)
     {
         var typeMap = typeMapConfiguration.TypeMap;
@@ -173,61 +197,78 @@ public sealed class ProfileMap
         {
             IncludeAllDerived(configuration, typeMap);
         }
+
         Configure(typeMap, configuration);
     }
+
     private static void IncludeAllDerived(IGlobalConfiguration configuration, TypeMap typeMap)
     {
         foreach (var derivedMap in configuration.GetAllTypeMaps().Where(tm =>
-                typeMap != tm &&
-                typeMap.SourceType.IsAssignableFrom(tm.SourceType) &&
-                typeMap.DestinationType.IsAssignableFrom(tm.DestinationType)))
+                     typeMap != tm &&
+                     typeMap.SourceType.IsAssignableFrom(tm.SourceType) &&
+                     typeMap.DestinationType.IsAssignableFrom(tm.DestinationType)))
         {
             typeMap.IncludeDerivedTypes(derivedMap.Types);
         }
     }
+
     private void Configure(TypeMap typeMap, IGlobalConfiguration configuration)
     {
         if (typeMap.HasTypeConverter)
         {
             return;
         }
+
         MappingExpression expression = new(typeMap);
-        foreach(var action in AllTypeMapActions)
+        foreach (var action in AllTypeMapActions)
         {
             action(typeMap, expression);
         }
+
         expression.Configure(typeMap, configuration.SourceMembers);
-        foreach(var propertyMap in typeMap.PropertyMaps)
+        foreach (var propertyMap in typeMap.PropertyMaps)
         {
             MemberConfigurationExpression memberExpression = null;
-            foreach(var action in AllPropertyMapActions)
+            foreach (var action in AllPropertyMapActions)
             {
                 if (!action.Condition(propertyMap))
                 {
                     continue;
                 }
-                memberExpression ??= new(propertyMap.DestinationMember, typeMap.SourceType);
+
+                memberExpression ??=
+                    new MemberConfigurationExpression(propertyMap.DestinationMember, typeMap.SourceType);
                 action.Action(propertyMap, memberExpression);
             }
+
             memberExpression?.Configure(typeMap);
         }
+
         ApplyBaseMaps(typeMap, typeMap, configuration);
         ApplyDerivedMaps(typeMap, typeMap, configuration);
         ApplyMemberMaps(typeMap, configuration);
     }
-    public TypeMap CreateClosedGenericTypeMap(TypeMapConfiguration openMapConfig, TypePair closedTypes, IGlobalConfiguration configuration)
+
+    public TypeMap CreateClosedGenericTypeMap(TypeMapConfiguration openMapConfig, TypePair closedTypes,
+        IGlobalConfiguration configuration)
     {
         TypeMap closedMap;
         lock (configuration)
         {
-            closedMap = new(closedTypes.SourceType, closedTypes.DestinationType, this, openMapConfig);
+            closedMap = new TypeMap(closedTypes.SourceType, closedTypes.DestinationType, this, openMapConfig);
         }
+
         openMapConfig.Configure(closedMap, configuration.SourceMembers);
         Configure(closedMap, configuration);
         closedMap.CloseGenerics(openMapConfig, closedTypes);
         return closedMap;
     }
-    public TypeMapConfiguration GetGenericMap(TypePair genericPair) => _openTypeMapConfigs.GetValueOrDefault(genericPair);
+
+    public TypeMapConfiguration GetGenericMap(TypePair genericPair)
+    {
+        return _openTypeMapConfigs.GetValueOrDefault(genericPair);
+    }
+
     private void ApplyBaseMaps(TypeMap derivedMap, TypeMap currentMap, IGlobalConfiguration configuration)
     {
         foreach (var baseMap in configuration.GetIncludedTypeMaps(currentMap.IncludedBaseTypes))
@@ -236,15 +277,18 @@ public sealed class ProfileMap
             derivedMap.AddInheritedMap(baseMap);
         }
     }
+
     private void ApplyMemberMaps(TypeMap currentMap, IGlobalConfiguration configuration)
     {
         if (!currentMap.HasIncludedMembers)
         {
             return;
         }
+
         foreach (var includedMemberExpression in currentMap.GetAllIncludedMembers())
         {
-            var includedMap = configuration.GetIncludedTypeMap(includedMemberExpression.Body.Type, currentMap.DestinationType);
+            var includedMap =
+                configuration.GetIncludedTypeMap(includedMemberExpression.Body.Type, currentMap.DestinationType);
             IncludedMember includedMember = new(includedMap, includedMemberExpression);
             if (currentMap.AddMemberMap(includedMember))
             {
@@ -256,6 +300,7 @@ public sealed class ProfileMap
             }
         }
     }
+
     private void ApplyDerivedMaps(TypeMap baseMap, TypeMap typeMap, IGlobalConfiguration configuration)
     {
         foreach (var derivedMap in configuration.GetIncludedTypeMaps(typeMap))
@@ -264,30 +309,74 @@ public sealed class ProfileMap
             derivedMap.AddInheritedMap(baseMap);
         }
     }
-    public bool MapDestinationPropertyToSource(TypeDetails sourceTypeDetails, Type destType, Type destMemberType, string destMemberName, List<MemberInfo> members, bool reverseNamingConventions) =>
-        MemberConfiguration.IsMatch(this, sourceTypeDetails, destType, destMemberType, destMemberName, members, reverseNamingConventions);
-    public bool AllowsNullDestinationValuesFor(MemberMap memberMap = null) => memberMap?.AllowNull ?? AllowNullDestinationValues;
-    public bool AllowsNullCollectionsFor(MemberMap memberMap = null) => memberMap?.AllowNull ?? AllowNullCollections;
+
+    public bool MapDestinationPropertyToSource(TypeDetails sourceTypeDetails, Type destType, Type destMemberType,
+        string destMemberName, List<MemberInfo> members, bool reverseNamingConventions)
+    {
+        return MemberConfiguration.IsMatch(this, sourceTypeDetails, destType, destMemberType, destMemberName, members,
+            reverseNamingConventions);
+    }
+
+    public bool AllowsNullDestinationValuesFor(MemberMap memberMap = null)
+    {
+        return memberMap?.AllowNull ?? AllowNullDestinationValues;
+    }
+
+    public bool AllowsNullCollectionsFor(MemberMap memberMap = null)
+    {
+        return memberMap?.AllowNull ?? AllowNullCollections;
+    }
 }
+
 [EditorBrowsable(EditorBrowsableState.Never)]
 [DebuggerDisplay("{MemberExpression}, {TypeMap}")]
-public sealed record IncludedMember(TypeMap TypeMap, LambdaExpression MemberExpression, ParameterExpression Variable, LambdaExpression ProjectToCustomSource)
+public sealed record IncludedMember(
+    TypeMap TypeMap,
+    LambdaExpression MemberExpression,
+    ParameterExpression Variable,
+    LambdaExpression ProjectToCustomSource)
 {
     public IncludedMember(TypeMap typeMap, LambdaExpression memberExpression) : this(typeMap, memberExpression,
-        Expression.Variable(memberExpression.Body.Type, string.Join("", memberExpression.GetMembersChain().Select(m => m.Name))), memberExpression){}
+        Expression.Variable(memberExpression.Body.Type,
+            string.Join("", memberExpression.GetMembersChain().Select(m => m.Name))), memberExpression)
+    {
+    }
+
     public IncludedMember Chain(IncludedMember other, IGlobalConfiguration configuration = null)
     {
         if (other == null)
         {
             return this;
         }
-        return new(other.TypeMap, Chain(other.MemberExpression, other, configuration), other.Variable, Chain(MemberExpression, other.MemberExpression));
+
+        return new IncludedMember(other.TypeMap, Chain(other.MemberExpression, other, configuration), other.Variable,
+            Chain(MemberExpression, other.MemberExpression));
     }
-    public static LambdaExpression Chain(LambdaExpression customSource, LambdaExpression lambda) => 
-        Lambda(lambda.ReplaceParameters(customSource.Body), customSource.Parameters);
-    public LambdaExpression Chain(LambdaExpression lambda) => Chain(lambda, null, null);
-    LambdaExpression Chain(LambdaExpression lambda, IncludedMember includedMember, IGlobalConfiguration configuration) => 
-        Lambda(lambda.ReplaceParameters(Variable).NullCheck(configuration, includedMember: includedMember), lambda.Parameters);
-    public bool Equals(IncludedMember other) => TypeMap == other?.TypeMap;
-    public override int GetHashCode() => TypeMap.GetHashCode();
+
+    public static LambdaExpression Chain(LambdaExpression customSource, LambdaExpression lambda)
+    {
+        return Lambda(lambda.ReplaceParameters(customSource.Body), customSource.Parameters);
+    }
+
+    public LambdaExpression Chain(LambdaExpression lambda)
+    {
+        return Chain(lambda, null, null);
+    }
+
+    private LambdaExpression Chain(LambdaExpression lambda, IncludedMember includedMember,
+        IGlobalConfiguration configuration)
+    {
+        return Lambda(lambda.ReplaceParameters(Variable).NullCheck(configuration, includedMember: includedMember),
+            lambda.Parameters);
+    }
+
+    public bool Equals(IncludedMember other)
+    {
+        return TypeMap == other?.TypeMap;
+    }
+
+    public override int GetHashCode()
+    {
+        return TypeMap.GetHashCode();
+    }
 }
