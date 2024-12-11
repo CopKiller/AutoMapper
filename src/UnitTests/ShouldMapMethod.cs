@@ -50,7 +50,7 @@ public class ShouldMapMethodInstanceMethods : NonValidatingSpecBase
 
     protected override MapperConfiguration CreateConfiguration() => new(cfg =>
     {
-        cfg.ShouldMapMethod = (m => m.Name != nameof(Source.AnotherNumber));
+        cfg.ShouldMapMethod = (new Func<MethodInfo, bool>(m => m.Name != nameof(Source.AnotherNumber)));
         cfg.CreateMap<Source, Destination>();
     });
 
@@ -117,7 +117,7 @@ public class ShouldMapMethodExtensionMethods : NonValidatingSpecBase
     protected override MapperConfiguration CreateConfiguration() => new(cfg => 
     {
         cfg.IncludeSourceExtensionMethods(typeof(SourceExtensions));
-        cfg.ShouldMapMethod = (m => m.Name != nameof(SourceExtensions.AnotherNumber));
+        cfg.ShouldMapMethod = (new Func<MethodInfo, bool>(m => m.Name != nameof(SourceExtensions.AnotherNumber)));
         cfg.CreateMap<Source, Destination>();
     });
 
