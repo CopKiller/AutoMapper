@@ -4,7 +4,7 @@
     <Authors>Jimmy Bogard</Authors>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);CS1701;CS1702;CS1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Features>strict</Features>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
