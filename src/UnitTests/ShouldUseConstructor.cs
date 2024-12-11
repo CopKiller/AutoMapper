@@ -30,7 +30,7 @@ public class ShouldUseConstructorInternal : NonValidatingSpecBase
     protected override MapperConfiguration CreateConfiguration() => new(
         cfg =>
         {
-            cfg.ShouldUseConstructor = c => c.IsAssembly;
+            cfg.ShouldUseConstructor = new Func<ConstructorInfo, bool>(c => c.IsAssembly);
             cfg.CreateMap<Source, Destination>();
         });
 
@@ -69,7 +69,7 @@ public class ShouldUseConstructorPrivate : NonValidatingSpecBase
     protected override MapperConfiguration CreateConfiguration() => new(
         cfg =>
         {
-            cfg.ShouldUseConstructor = c => c.IsPrivate;
+            cfg.ShouldUseConstructor = new Func<ConstructorInfo, bool>(c => c.IsPrivate);
             cfg.CreateMap<Source, Destination>();
         });
 
@@ -107,7 +107,7 @@ public class ShouldUseConstructorPublic : NonValidatingSpecBase
     protected override MapperConfiguration CreateConfiguration() => new(
         cfg =>
         {
-            cfg.ShouldUseConstructor = c => c.IsPublic;
+            cfg.ShouldUseConstructor = new Func<ConstructorInfo, bool>(c => c.IsPublic);
             cfg.CreateMap<Source, Destination>();
         });
 

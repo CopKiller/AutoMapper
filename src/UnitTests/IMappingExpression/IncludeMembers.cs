@@ -1701,7 +1701,7 @@ public class IncludeMembersConstructorMapping : AutoMapperSpecBase
     }
     protected override MapperConfiguration CreateConfiguration() => new(cfg =>
     {
-        cfg.ShouldUseConstructor = c => c.IsPublic;
+        cfg.ShouldUseConstructor = new Func<ConstructorInfo, bool>(c => c.IsPublic);
         cfg.CreateMap<Source, Destination>().IncludeMembers(s => s.FieldLevel1);
         cfg.CreateMap<Level1, Destination>(MemberList.None).IncludeMembers(s => s.FieldLevel2);
         cfg.CreateMap<Level2, Destination>(MemberList.None);
@@ -1738,7 +1738,7 @@ public class IncludeMembersMultipleConstructorMapping : AutoMapperSpecBase
     }
     protected override MapperConfiguration CreateConfiguration() => new(cfg =>
     {
-        cfg.ShouldUseConstructor = c => c.IsPublic;
+        cfg.ShouldUseConstructor = new Func<ConstructorInfo, bool>(c => c.IsPublic);
         cfg.CreateMap<Source, Destination>().IncludeMembers(s => s.FieldLevel1);
         cfg.CreateMap<Level1, Destination>(MemberList.None).IncludeMembers(s => s.FieldLevel2);
         cfg.CreateMap<Level2, Destination>(MemberList.None);

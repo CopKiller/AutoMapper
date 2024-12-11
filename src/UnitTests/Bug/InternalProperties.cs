@@ -16,7 +16,7 @@ public class InternalProperties : AutoMapperSpecBase
 
     protected override MapperConfiguration CreateConfiguration() => new(cfg =>
     {
-        cfg.ShouldMapProperty = p => true;
+        cfg.ShouldMapProperty = new Func<PropertyInfo, bool>(p => true);
         cfg.CreateMap<Source, Destination>();
     });
 
